@@ -1,4 +1,4 @@
 # Terminal Layer
 
-- 역할: 사용자 상호작용(TUI/CLI), 상태 표기, 승인 입력
-- 비즈니스 판단은 Brain Layer로 위임
+- Role: user interaction (TUI/CLI), status rendering, and approval input
+- Business decision logic is delegated to the Brain layer
