@@ -1,0 +1,26 @@
+{
+  "name": "google-live-agent-monorepo",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Layered monorepo for Google Live Agent",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "postinstall": "npm run build:packages",
+    "build:packages": "npm run build -w @google-live-agent/contracts -w @google-live-agent/observability -w @google-live-agent/memory-pg",
+    "build:apps": "npm run build -w @google-live-agent/terminal -w @google-live-agent/voice-gateway -w @google-live-agent/brain-api -w @google-live-agent/executor-local",
+    "build": "npm run build:packages && npm run build:apps",
+    "typecheck": "npm run typecheck -ws --if-present",
+    "dev:terminal": "npm run -w apps/terminal dev -- status",
+    "dev:brain": "npm run -w apps/brain-api dev",
+    "dev:voice": "npm run -w apps/voice-gateway dev",
+    "dev:executor": "npm run -w apps/executor-local dev"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  }
+}

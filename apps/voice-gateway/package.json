@@ -1,0 +1,23 @@
+{
+  "name": "@google-live-agent/voice-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "live-test": "tsx src/index.ts --live-test"
+  },
+  "dependencies": {
+    "@google-live-agent/contracts": "0.1.0",
+    "@google-live-agent/observability": "0.1.0",
+    "@google/genai": "^1.29.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

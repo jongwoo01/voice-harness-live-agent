@@ -1,0 +1,19 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: brain-api
+spec:
+  template:
+    spec:
+      containers:
+        - image: us-central1-docker.pkg.dev/PROJECT_ID/google-live-agent/brain-api:latest
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: brain-database-url
+                  key: latest
+          ports:
+            - containerPort: 8080
