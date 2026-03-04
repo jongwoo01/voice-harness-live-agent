@@ -282,6 +282,74 @@ export class PostgresMemoryStore {
     }));
   }
 
+  async getPendingCommandsForSubscriber(
+    sessionId: string,
+    target: BrainCommand['target'],
+    limit = 50
+  ): Promise<BrainCommand[]> {
+    if (!this.pool) {
+      const now = Date.now();
+      return Array.from(this.fallbackOutbox.values())
+        .filter((record) => {
+          if (record.command.session_id !== sessionId) return false;
+          if (record.command.target !== target) return false;
+          if (record.status === 'acked' || record.status === 'expired') return false;
+          if (Date.parse(record.command.expires_at) <= now) {
+            record.status = 'expired';
+            return false;
+          }
+          return true;
+        })
+        .slice(0, limit)
+        .map((record) => record.command);
+    }
+
+    const result = await this.pool.query<{
+      command_id: string;
+      session_id: string;
+      task_id: string;
+      target_client: BrainCommand['target'];
+      action: string;
+      payload: Record<string, unknown>;
+      correlation_id: string;
+      created_at: string;
+      expires_at: string;
+    }>(
+      `
+      select
+        command_id,
+        session_id,
+        task_id,
+        target_client,
+        action,
+        payload,
+        correlation_id,
+        created_at,
+        expires_at
+      from command_outbox
+      where session_id = $1
+        and target_client = $2
+        and status in ('queued', 'sent', 'failed')
+        and expires_at > now()
+      order by created_at asc
+      limit $3
+      `,
+      [sessionId, target, limit]
+    );
+
+    return result.rows.map((row) => ({
+      command_id: row.command_id,
+      session_id: row.session_id,
+      task_id: row.task_id,
+      target: row.target_client,
+      action: row.action,
+      payload: row.payload,
+      correlation_id: row.correlation_id,
+      created_at: row.created_at,
+      expires_at: row.expires_at
+    }));
+  }
+
   async getTaskPermissionTimeline(sessionId: string, taskId: string): Promise<TaskPermissionTimelineEntry[]> {
     if (!this.pool) return [];
 

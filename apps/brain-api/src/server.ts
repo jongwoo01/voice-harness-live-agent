@@ -150,6 +150,15 @@ async function resendRetryableCommands(): Promise<void> {
   }
 }
 
+async function replayPendingForSubscriber(sessionId: string, client: CommandTargetClient): Promise<void> {
+  const pending = await memory.getPendingCommandsForSubscriber(sessionId, client, 100);
+  for (const command of pending) {
+    if (dispatchCommand(command)) {
+      await memory.markCommandDispatched(command.command_id);
+    }
+  }
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
@@ -179,7 +188,7 @@ const server = http.createServer(async (req, res) => {
 
       const sseClient = addSseClient(sessionId, client, res);
       sse(sseClient, 'connected', { connected: true, session_id: sessionId, client });
-      await resendRetryableCommands();
+      await replayPendingForSubscriber(sessionId, client);
 
       req.on('close', () => {
         removeSseClient(sseClient);
